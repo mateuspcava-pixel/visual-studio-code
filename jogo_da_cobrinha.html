@@ -1,0 +1,115 @@
+# visual-studio-code
+# jogo da cobrinha HTML
+<!DOCTYPE html>
+<link rel="stylesheet" href="jogo_da_cobrinha.css">
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+  <title>Cobrinha</title>
+</head>
+<body>
+  <h1>Jogo da Cobrinha</h1>
+  <p>Use as setas do teclado para mover</p>
+  <div class="grade" id="grade"></div>
+
+  <script>
+    // Variáveis iniciais
+    let nivel = 2;
+    let tamanho = 1;
+    let vida = true;
+    let nivelAlcansado = 0;
+
+    let arena = [];
+    let cobra = [[0,0]];
+    let localisar = [0,0];
+    let comida_pos = [];
+
+    const gradeEl = document.getElementById("grade");
+
+    function criarArena() {
+      arena = Array.from({length: nivel}, () => Array(nivel).fill(0));
+      arena[0][0] = 1;
+      gradeEl.style.gridTemplateColumns = `repeat(${nivel}, 40px)`;
+    }
+
+    function gerarComida() {
+      while (true) {
+        let posL = Math.floor(Math.random() * nivel);
+        let posC = Math.floor(Math.random() * nivel);
+        if (arena[posL][posC] === 0) {
+          comida_pos = [posL, posC];
+          arena[posL][posC] = 2;
+          break;
+        }
+      }
+    }
+
+    function mostrar() {
+      gradeEl.innerHTML = "";
+      for (let row = 0; row < nivel; row++) {
+        for (let col = 0; col < nivel; col++) {
+          const div = document.createElement("div");
+          if (arena[row][col] === 0) div.className = "caixote";
+          else if (arena[row][col] === 1) div.className = "cobrinha";
+          else if (arena[row][col] === 2) div.className = "maca";
+          gradeEl.appendChild(div);
+        }
+      }
+    }
+
+    function movimento(direcao) {
+      // Atualiza a posição da cabeça
+      if (direcao === "ArrowUp") localisar[0] = (localisar[0] - 1 + nivel) % nivel;
+      else if (direcao === "ArrowDown") localisar[0] = (localisar[0] + 1) % nivel;
+      else if (direcao === "ArrowLeft") localisar[1] = (localisar[1] - 1 + nivel) % nivel;
+      else if (direcao === "ArrowRight") localisar[1] = (localisar[1] + 1) % nivel;
+
+      // Colisão com o próprio corpo
+      for (let segment of cobra) {
+        if (segment[0] === localisar[0] && segment[1] === localisar[1]) {
+          alert("Game Over! Nível alcançado: " + nivelAlcansado);
+          vida = false;
+          return;
+        }
+      }
+
+      // Comida
+      if (localisar[0] === comida_pos[0] && localisar[1] === comida_pos[1]) {
+        tamanho += 1;
+        if (tamanho >= nivel * nivel) {
+          alert("Você ganhou o nível!");
+          nivelAlcansado += 1;
+          nivel = Math.floor(nivel * 1.5);
+          tamanho = 1;
+          localisar = [0,0];
+          cobra = [[0,0]];
+          criarArena();
+        }
+        gerarComida();
+      }
+
+      // Atualiza a cobra
+      cobra.push([localisar[0], localisar[1]]);
+      arena[localisar[0]][localisar[1]] = 1;
+
+      if (cobra.length > tamanho) {
+        const cauda = cobra.shift();
+        arena[cauda[0]][cauda[1]] = 0;
+      }
+
+      mostrar();
+    }
+
+    // Eventos do teclado
+    document.addEventListener("keydown", (e) => {
+      if (vida) movimento(e.key);
+    });
+
+    // Inicialização
+    criarArena();
+    gerarComida();
+    mostrar();
+
+  </script>
+</body>
+</html>
