@@ -1,5 +1,6 @@
 # visual-studio-code
 # jogo da cobrinha HTML
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,19 +11,41 @@
 </head>
 <body>
   <h1>Jogo da Cobrinha</h1>
-  <p>Use as setas do teclado para mover</p>
-  <p>Pressione ENTER para reiniciar quando perder</p>
+  <p>Use as setas do teclado para mover a cobrinha.</p>
+  <p id="vitoria"></p>
+  <p id="derota"></p>
 
-  <!-- HUD -->
+
+  <!-- HUD: Exibe informações do jogo -->
   <div id="hud">
-    <p id="nivel">Nível: 0</p>
-    <p id="mapa">Mapa: 3x3</p>
-    <p id="pontos">Pontuação: 0</p>
+    <p id="nivel"></p>
+    <p id="mapa"></p>
+    <p id="pontos"></p>
+    <p id="tamanho"></p>
   </div>
+
+  <!-- Botão para iniciar o jogo -->
+  <div id="iniciarjogo">
+    <button onclick="iniciarJogo()">Iniciar Jogo</button>
+  </div>
+  <div id="reiniciar">
+    <button onclick="reiniciar()">reiniciar</button>
+  </div>
+
+
+  <!-- Menu de seleção de dificuldade -->
+  <div id="menu">
+    <button onclick="facil()">Fácil</button>
+    <button onclick="normal()">Normal</button>
+    <button onclick="dificil()">Difícil</button>
+  </div>
+
+
 
   <!-- Grid do jogo -->
   <div class="grade" id="grade"></div>
 
+  <!-- Script do jogo -->
   <script src="jogo_da_cobrinha.js"></script>
 </body>
 </html>
