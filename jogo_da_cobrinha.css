@@ -1,5 +1,6 @@
 # visual studio code
 # jogo da cobrinha CSS
+/* Fonte padrão e centralização */
 body {
   font-family: Arial, sans-serif;
   display: flex;
@@ -12,19 +13,22 @@ h1 {
   margin-bottom: 5px;
 }
 
+/* HUD: mostra nível, mapa, pontuação e tamanho da cobra */
 #hud {
   display: flex;
   gap: 20px;
   margin-bottom: 10px;
 }
 
+/* Grade do jogo: usa display grid */
 .grade {
   display: grid;
-  grid-template-columns: repeat(3, 40px);
+  grid-template-columns: repeat(3, 40px); /* será ajustado pelo JS */
   gap: 1px;
   background-color: #333;
 }
 
+/* Blocos do grid */
 .caixote {
   width: 40px;
   height: 40px;
