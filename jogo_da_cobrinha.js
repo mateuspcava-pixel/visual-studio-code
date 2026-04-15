@@ -1,298 +1,218 @@
 # visual studio code
 # java script
-// ===============================
-// Variáveis do jogo
-// ===============================
-let nivel, tamanho, vida, nivelAlcansado, comidas;
-let arena = [];
-let cobra = [];
-let posicaoCobra = [];
-let comida_pos = [];
-let modo = "";
-let loopJogo;
 
-let direcaoAtual = "ArrowRight"; // começa andando
-let proximaDirecao = "";
+let level;
+let snake = [];
+let food = [];
+let dir = "ArrowRight";
+let loop;
+let alive = true;
+let turnMode = false;
 
-const direcoesOpostas = {
-  ArrowUp: "ArrowDown",
-  ArrowDown: "ArrowUp",
-  ArrowLeft: "ArrowRight",
-  ArrowRight: "ArrowLeft"
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+let skin = localStorage.getItem("skin") || "padrao";
+
+let shop = {
+  neon: { price: 5, unlocked: false },
+  fogo: { price: 10, unlocked: false },
+  gelo: { price: 15, unlocked: false },
+  rainbow: { price: 25, unlocked: false }
 };
 
-const gradeEl = document.getElementById("grade");
+let savedShop = JSON.parse(localStorage.getItem("shop"));
+if (savedShop) shop = savedShop;
 
-// ===============================
-// Máximos por dificuldade
-// ===============================
-const maximos = {
-  facil: { nivel: 3, tamanho: 1, nivelAlcansado: 0, comidas: 0 },
-  normal: { nivel: 5, tamanho: 1, nivelAlcansado: 0, comidas: 0 },
-  dificil: { nivel: 8, tamanho: 1, nivelAlcansado: 0, comidas: 0 }
-};
+const grid = document.getElementById("grade");
 
-// ===============================
-// BOTÕES DE MODO (CORREÇÃO)
-// ===============================
-function facil() { modo = "facil"; }
-function normal() { modo = "normal"; }
-function dificil() { modo = "dificil"; }
-
-// ===============================
-// Reiniciar
-// ===============================
-function reiniciar() {
-  document.getElementById("derota").textContent = "";
-  document.getElementById("vitoria").textContent = "";
-
-  modo = "";
-  vida = false;
-  clearInterval(loopJogo);
-
-  document.getElementById("menu").style.display = "block";
-  document.getElementById("iniciarjogo").style.display = "block";
-  document.getElementById("reiniciar").style.display = "none";
-}
-
-document.getElementById("reiniciar").style.display = "none";
-
-// ===============================
-// Iniciar jogo
-// ===============================
-function iniciarJogo() {
-  if (!modo) return;
+/* START */
+function start(mode) {
+  alive = true;
 
   document.getElementById("menu").style.display = "none";
-  document.getElementById("reiniciar").style.display = "none";
-  document.getElementById("iniciarjogo").style.display = "none";
+  document.getElementById("gameover").textContent = "";
+  document.getElementById("restart").style.display = "none";
 
-  tamanho = 1;
-  vida = true;
-  nivelAlcansado = 0;
-  comidas = 0;
-  arena = [];
-  cobra = [[0,0]];
-  posicaoCobra = [0,0];
-  comida_pos = [];
+  if (mode === "facil") {
+    level = 4;
+    turnMode = true;
+  }
+  if (mode === "normal") {
+    level = 6;
+    turnMode = false;
+  }
+  if (mode === "dificil") {
+    level = 8;
+    turnMode = false;
+  }
 
-  direcaoAtual = "ArrowRight";
-  proximaDirecao = "";
+  snake = [[Math.floor(level/2), Math.floor(level/2)]];
+  dir = "ArrowRight";
 
-  nivel = maximos[modo].nivel;
+  document.body.className = "skin-" + skin;
 
-  criarArena();
-  gerarComida();
-  atualizarHUD();
-  mostrar();
+  spawnFood();
+  render();
 
-  clearInterval(loopJogo);
+  clearInterval(loop);
+  if (!turnMode) loop = setInterval(step, 180);
 
-  // ===============================
-  // LOOP FUNCIONANDO EM TODOS MODOS
-  // ===============================
-  if (modo === "normal") loopJogo = setInterval(jogoLoop, 600);
-  else if (modo === "dificil") loopJogo = setInterval(jogoLoop, 400);
+  updateShopUI();
 }
 
-// ===============================
-// Criar arena
-// ===============================
-function criarArena() {
-  arena = Array.from({ length: nivel }, () => Array(nivel).fill(0));
-  arena[0][0] = 3;
-  gradeEl.style.gridTemplateColumns = `repeat(${nivel}, 40px)`;
+/* MOVE */
+function step() {
+  if (!alive) return;
+  move();
 }
 
-// ===============================
-// Gerar comida
-// ===============================
-function gerarComida() {
-  while(true){
-    let l = Math.floor(Math.random()*nivel);
-    let c = Math.floor(Math.random()*nivel);
+function move() {
+  let head = [...snake[snake.length - 1]];
 
-    if(arena[l][c] === 0){
-      comida_pos = [l,c];
-      arena[l][c] = 2;
-      break;
-    }
+  if (dir === "ArrowUp") head[0]--;
+  if (dir === "ArrowDown") head[0]++;
+  if (dir === "ArrowLeft") head[1]--;
+  if (dir === "ArrowRight") head[1]++;
+
+  head[0] = (head[0] + level) % level;
+  head[1] = (head[1] + level) % level;
+
+  if (snake.some(p => p[0] === head[0] && p[1] === head[1])) {
+    return gameOver();
+  }
+
+  snake.push(head);
+
+  if (head[0] === food[0] && head[1] === food[1]) {
+    coins++;
+    localStorage.setItem("coins", coins);
+    spawnFood();
+    checkWin();
+  } else {
+    snake.shift();
+  }
+
+  render();
+}
+
+/* CONTROLE */
+document.addEventListener("keydown", (e) => {
+  if (!alive) return;
+
+  const keys = ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"];
+  if (keys.includes(e.key)) dir = e.key;
+
+  if (turnMode) move();
+});
+
+/* FOOD SAFE */
+function spawnFood() {
+  let ok = false;
+
+  while (!ok) {
+    food = [
+      Math.floor(Math.random() * level),
+      Math.floor(Math.random() * level)
+    ];
+
+    ok = !snake.some(p => p[0] === food[0] && p[1] === food[1]);
   }
 }
 
-// ===============================
-// HUD
-// ===============================
-function atualizarHUD(){
-  const m = maximos[modo];
+/* SKIN SHOP */
+function setSkin(s) {
 
-  document.getElementById("nivel").textContent =
-    `Nível: ${nivelAlcansado}`;
-
-  document.getElementById("mapa").textContent =
-    `Mapa: ${nivel}x${nivel}`;
-
-  document.getElementById("pontos").textContent =
-    `Pontuação: ${comidas}`;
-
-  document.getElementById("tamanho").textContent =
-    `Tamanho: ${tamanho}`;
-}
-
-// ===============================
-// Renderização
-// ===============================
-function mostrar() {
-  gradeEl.innerHTML = "";
-
-  for(let row=0; row<nivel; row++){
-    for(let col=0; col<nivel; col++){
-      const div = document.createElement("div");
-
-      switch(arena[row][col]){
-        case 0: div.className="caixote"; break;
-        case 1: div.className="cobrinha"; break;
-        case 2: div.className="maca"; break;
-        case 3: div.className="cabeca"; break;
+  if (s !== "padrao") {
+    if (!shop[s].unlocked) {
+      if (coins < shop[s].price) {
+        alert("❌ Sem moedas!");
+        return;
       }
 
-      gradeEl.appendChild(div);
-    }
-  }
-}
+      coins -= shop[s].price;
+      shop[s].unlocked = true;
 
-// ===============================
-// Movimento
-// ===============================
-function movimento(direcao, wrap=false){
-  if(!vida || direcao==="") return;
-
-  let novaPos=[...posicaoCobra];
-
-  switch(direcao){
-    case "ArrowUp": novaPos[0]-=1; break;
-    case "ArrowDown": novaPos[0]+=1; break;
-    case "ArrowLeft": novaPos[1]-=1; break;
-    case "ArrowRight": novaPos[1]+=1; break;
-  }
-
-  if(wrap){
-    novaPos[0]=(novaPos[0]+nivel)%nivel;
-    novaPos[1]=(novaPos[1]+nivel)%nivel;
-  } else if(
-    novaPos[0]<0 || novaPos[0]>=nivel ||
-    novaPos[1]<0 || novaPos[1]>=nivel
-  ){
-    document.getElementById("derota").textContent="Game Over!";
-    vida=false;
-    clearInterval(loopJogo);
-    document.getElementById("reiniciar").style.display="block";
-    return;
-  }
-
-  // colisão com corpo
-  if(cobra.some(p=>p[0]===novaPos[0] && p[1]===novaPos[1])){
-    document.getElementById("derota").textContent="Game Over!";
-    vida=false;
-    clearInterval(loopJogo);
-    document.getElementById("reiniciar").style.display="block";
-    return;
-  }
-
-  arena[posicaoCobra[0]][posicaoCobra[1]]=1;
-  posicaoCobra=novaPos;
-
-  // comer
-  if(posicaoCobra[0]===comida_pos[0] && posicaoCobra[1]===comida_pos[1]){
-    tamanho++;
-    comidas++;
-
-    if(tamanho>=nivel*nivel){
-      document.getElementById("vitoria").textContent="Você ganhou!";
-
-      tamanho=1;
-      cobra=[[0,0]];
-      posicaoCobra=[0,0];
-
-      // crescimento controlado
-      if(modo==="facil") nivel++;
-      else if(modo==="normal") nivel=Math.floor(nivel*1.25);
-      else if(modo==="dificil") nivel=Math.min(20, Math.floor(nivel*1.5));
-
-      criarArena();
-      gerarComida();
-      return;
-    } else {
-      gerarComida();
+      localStorage.setItem("coins", coins);
+      localStorage.setItem("shop", JSON.stringify(shop));
     }
   }
 
-  cobra.push([...posicaoCobra]);
-  arena[posicaoCobra[0]][posicaoCobra[1]]=3;
+  skin = s;
+  localStorage.setItem("skin", skin);
 
-  if(cobra.length>tamanho){
-    const cauda=cobra.shift();
-    arena[cauda[0]][cauda[1]]=0;
+  document.body.className = "skin-" + skin;
+
+  updateShopUI();
+}
+/* SHOP UI */
+function updateShopUI() {
+  document.getElementById("info").innerText =
+    `💰 Coins: ${coins} | Skin: ${skin}`;
+
+  for (let k in shop) {
+    const btn = document.querySelector(`[onclick="setSkin('${k}')"]`);
+    if (!btn) continue;
+
+    btn.innerText = shop[k].unlocked ? k + " ✔" : k + " (" + shop[k].price + "💰)";
   }
-
-  atualizarHUD();
-  mostrar();
 }
 
-// ===============================
-// Loop
-// ===============================
-function jogoLoop(){
-  if(proximaDirecao){
-    direcaoAtual=proximaDirecao;
-    proximaDirecao="";
-  }
+/* WIN */
+function checkWin() {
+  if (snake.length >= level * level) {
+    alert("🏆 Você venceu!");
 
-  movimento(direcaoAtual, modo==="facil" || modo==="normal");
+    level = Math.min(level + 2, 14);
+
+    snake = [[Math.floor(level/2), Math.floor(level/2)]];
+    dir = "ArrowRight";
+
+    spawnFood();
+    render();
+
+    clearInterval(loop);
+    if (!turnMode) loop = setInterval(step, 180);
+  }
 }
 
-// ===============================
-// Teclado
-// ===============================
-document.addEventListener("keydown",(e)=>{
-  if(!vida) return;
+/* RENDER FIX TOTAL */
+function render() {
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${level}, 26px)`;
 
-  if(!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) return;
+  for (let r = 0; r < level; r++) {
+    for (let c = 0; c < level; c++) {
 
-  if(direcoesOpostas[e.key]===direcaoAtual) return;
+      const cell = document.createElement("div");
+      cell.className = "caixa";
 
-  // MODO FÁCIL: anda na hora
-  if(modo === "facil"){
-    direcaoAtual = e.key;
-    movimento(e.key, true);
-    return;
+      if (food[0] === r && food[1] === c) {
+        cell.className = "comida";
+      }
+
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i][0] === r && snake[i][1] === c) {
+          cell.className = (i === snake.length - 1) ? "cabeca" : "cobra";
+          break;
+        }
+      }
+
+      grid.appendChild(cell);
+    }
   }
 
-  // outros modos (com delay)
-  proximaDirecao = e.key;
-});
-
-  cobra.push([...localisar]);
-
-  // Definir cabeça
-  arena[localisar[0]][localisar[1]] = 3;
-
-  // Remover cauda
-  if (cobra.length > tamanho) {
-    const cauda = cobra.shift();
-    arena[cauda[0]][cauda[1]] = 0;
-  }
-
-  mostrar();
+  updateShopUI();
 }
 
-// Evento teclado
-document.addEventListener("keydown", (e) => {
-  if (!vida && e.key === "Enter") {
-    iniciarJogo();
-  } else {
-    movimento(e.key);
-  }
-});
+/* GAME OVER */
+function gameOver() {
+  alive = false;
+  clearInterval(loop);
+  document.getElementById("gameover").innerText = "💀 Game Over";
+  document.getElementById("restart").style.display = "block";
+}
 
-iniciarJogo();
+/* RESTART */
+function restart() {
+  document.getElementById("menu").style.display = "inline-block";
+  document.getElementById("restart").style.display = "none";
+}
