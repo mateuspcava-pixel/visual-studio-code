@@ -1,54 +1,128 @@
 # visual studio code
 # jogo da cobrinha CSS
-/* Fonte padrão e centralização */
-body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
+
+ body {
+  margin: 0;
+  text-align: center;
+  font-family: Arial;
+  background: radial-gradient(circle, #1a1a1a, #0a0a0a);
+  color: white;
+  overflow-x: hidden;
 }
 
 h1 {
-  margin-bottom: 5px;
+  margin: 15px;
+  text-shadow: 0 0 10px limegreen;
 }
 
-/* HUD: mostra nível, mapa, pontuação e tamanho da cobra */
-#hud {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 10px;
+/* MENU */
+#menu {
+  margin: 10px auto;
+  padding: 15px;
+  background: rgba(30,30,30,0.9);
+  display: inline-block;
+  border-radius: 14px;
 }
 
-/* Grade do jogo: usa display grid */
-.grade {
+/* BOTÕES */
+button {
+  margin: 5px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #333;
+  color: white;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px limegreen;
+}
+
+/* INFO */
+#info {
+  margin-top: 10px;
+  color: #00ff88;
+}
+
+/* GRID RESPONSIVO (CORRIGIDO) */
+#grade {
   display: grid;
-  grid-template-columns: repeat(3, 40px); /* será ajustado pelo JS */
-  gap: 1px;
-  background-color: #333;
+  gap: 2px;
+  justify-content: center;
+  margin: 20px auto;
+
+  padding: 10px;
+  background: rgba(0,0,0,0.8);
+  border-radius: 12px;
+
+  max-width: 95vw;
+  max-height: 70vh;
+
+  overflow: auto;
 }
 
-/* Blocos do grid */
-.caixote {
-  width: 40px;
-  height: 40px;
-  background-color: #eee;
-  border-radius: 4px;
+/* CELULAS MENOR PRA CABER TUDO */
+.caixa, .cobra, .cabeca, .comida {
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  border-radius: 5px;
 }
 
-.cobrinha {
-  width: 40px;
-  height: 40px;
-  background-color: #4CAF50;
-  border-radius: 4px;
+.caixa { background: #111; }
+
+.cobra {
+  background: limegreen;
+  box-shadow: 0 0 6px rgba(0,255,0,0.3);
 }
 
 .cabeca {
-  width: 40px;
-  height: 40px;
-  background-color: #2e7d32;
-  border-radius: 25%;
+  background: green;
+  box-shadow: 0 0 10px rgba(0,255,0,0.6);
 }
+
+.comida {
+  background: red;
+  border-radius: 50%;
+  box-shadow: 0 0 10px red;
+  animation: pulse 0.8s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(0.9); }
+  to { transform: scale(1.1); }
+}
+
+/* SKINS */
+.skin-neon .cobra { background: cyan; }
+.skin-neon .cabeca { background: blue; }
+
+.skin-fogo .cobra { background: orange; }
+.skin-fogo .cabeca { background: red; }
+
+.skin-gelo .cobra { background: #00e5ff; }
+.skin-gelo .cabeca { background: #0099cc; }
+
+.skin-rainbow .cobra {
+  background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet);
+  background-size: 400% 400%;
+  animation: rainbowMove 2.5s linear infinite;
+}
+
+.skin-rainbow .cabeca {
+  background: white;
+  transform: scale(1.2);
+}
+
+@keyframes rainbowMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
 
 .maca {
   width: 40px;
