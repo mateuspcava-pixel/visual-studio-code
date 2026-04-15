@@ -4,48 +4,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo da Cobrinha</title>
-  <link rel="stylesheet" href="jogo_da_cobrinha.css">
+<meta charset="UTF-8">
+<title>Snake Shop EVO</title>
+
+<link rel="stylesheet" href="jogo_da_cobrinha.css">
+
 </head>
-<body>
-  <h1>Jogo da Cobrinha</h1>
-  <p>Use as setas do teclado para mover a cobrinha.</p>
-  <p id="vitoria"></p>
-  <p id="derota"></p>
 
+<body class="skin-padrao">
 
-  <!-- HUD: Exibe informações do jogo -->
-  <div id="hud">
-    <p id="nivel"></p>
-    <p id="mapa"></p>
-    <p id="pontos"></p>
-    <p id="tamanho"></p>
-  </div>
+<h1>🐍 Snake Shop EVO</h1>
 
-  <!-- Botão para iniciar o jogo -->
-  <div id="iniciarjogo">
-    <button onclick="iniciarJogo()">Iniciar Jogo</button>
-  </div>
-  <div id="reiniciar">
-    <button onclick="reiniciar()">reiniciar</button>
-  </div>
+<div id="menu">
+  <button onclick="start('facil')">Fácil</button>
+  <button onclick="start('normal')">Normal</button>
+  <button onclick="start('dificil')">Difícil</button>
 
+  <br><br>
 
-  <!-- Menu de seleção de dificuldade -->
-  <div id="menu">
-    <button onclick="facil()">Fácil</button>
-    <button onclick="normal()">Normal</button>
-    <button onclick="dificil()">Difícil</button>
-  </div>
+  <button onclick="setSkin('padrao')">Padrão</button>
+  <button onclick="setSkin('neon')">Neon</button>
+  <button onclick="setSkin('fogo')">Fogo</button>
+  <button onclick="setSkin('gelo')">Gelo</button>
+  <button onclick="setSkin('rainbow')">Rainbow</button>
+</div>
 
+<p id="info"></p>
+<p id="gameover"></p>
 
+<div id="grade"></div>
 
-  <!-- Grid do jogo -->
-  <div class="grade" id="grade"></div>
+<button onclick="restart()" id="restart" style="display:none;">Restart</button>
 
-  <!-- Script do jogo -->
-  <script src="jogo_da_cobrinha.js"></script>
+<script src="jogo_da_cobrinha.js"></script>
+
 </body>
 </html>
